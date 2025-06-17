@@ -1,0 +1,56 @@
+# Dependencies
+node_modules/
+__pycache__/
+
+# Environment variables
+.env
+
+# macOS
+.DS_Store
+
+# Build outputs
+frontend/build/
+frontend/dist/
+
+# Python
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log
+logs/
+
+# Test coverage
+coverage/
+htmlcov/
+*.coverage
+*.cover
+.coverage.*
+.coverage.xml
+
+# Jupyter Notebook
+.ipynb_checkpoints

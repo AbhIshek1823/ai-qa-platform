@@ -1,0 +1,85 @@
+name: AI QA CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9"]
+        java-version: ["17"]
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install Python dependencies
+      run: |
+        cd backend
+        pip install -r requirements.txt
+        cd ../qa/python
+        pip install -r requirements.txt
+
+    - name: Run Python tests
+      run: |
+        cd backend
+        pytest tests/ -v --cov=.
+        cd ../qa/python
+        pytest tests/ -v --cov=.
+
+    - name: Set up Java
+      uses: actions/setup-java@v3
+      with:
+        java-version: ${{ matrix.java-version }}
+        distribution: 'temurin'
+
+    - name: Run Java tests
+      run: |
+        cd qa/java
+        mvn test
+
+    - name: Generate Test Reports
+      run: |
+        # Generate HTML reports for Python tests
+        cd backend
+        pytest tests/ --html=report.html
+        cd ../qa/python
+        pytest tests/ --html=report.html
+
+    - name: Upload Test Reports
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-reports
+        path: |
+          backend/report.html
+          qa/python/report.html
+          qa/java/target/surefire-reports
+
+    - name: Notify on Failure
+      if: ${{ failure() }}
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const context = github.context
+          const issueTitle = `Build Failed: ${context.workflow}`
+          const issueBody = `
+            Build failed for workflow: ${context.workflow}
+            Branch: ${context.ref}
+            Commit: ${context.sha}
+            
+            Please check the test reports for more details.
+          `
+          await github.rest.issues.create({
+            ...context.repo,
+            title: issueTitle,
+            body: issueBody
+          })
